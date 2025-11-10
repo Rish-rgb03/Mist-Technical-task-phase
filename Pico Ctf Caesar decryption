@@ -1,0 +1,100 @@
+ picoCTF — "Caesar Decryption"
+
+Challenge :  recover the hidden flag from a doubly-encoded string
+
+---
+
+Summary
+
+A single input was provided which turned out to be two layers of Base64 encoding followed by a Caesar cipher. By decoding the Base64 layers and brute-forcing the Caesar shift (26 possibilities), we recovered a readable flag.
+
+Final flag`picoCTF{caesar_d3cr9pt3d_f0212758}`
+
+---
+
+ Challenge Input
+
+```
+YidkM0JxZGtwQlRYdHFhR3g2YUhsZmF6TnFlVGwzWVROclgyMHdNakV5TnpVNGZRPT0nCg==
+```
+
+---
+
+ Step-by-step Solution
+
+ 1) Inspect the Input
+
+The string ends with `==`, which is a common indicator of **Base64** encoding. All characters belong to the Base64 alphabet (`A–Z`, `a–z`, `0–9`, `+`, `/`, `=`), confirming our suspicion.
+
+ 2) Decode Base64 (Layer 1)
+
+Decoding once reveals another Base64-encoded string enclosed within quotes:
+
+```
+b'd3BqdkpBTXtqaGx6aHlfazNqeTl3YTNrX20wMjEyNzU4fQ=='
+```
+
+This means we need to decode it again.
+
+ 3) Decode Base64 (Layer 2)
+
+After decoding the second layer, we obtain the following string:
+
+```
+wpjvJAM{jhlzhy_k3jy9wa3k_m0212758}
+```
+
+The format `{}` indicates a CTF-style flag, but the text inside is not yet readable. This hints at a **Caesar cipher**.
+
+ 4) Identify the Caesar Cipher
+
+A Caesar cipher shifts letters by a fixed number between 1 and 25. By testing all possible shifts, we eventually find that a shift of **19** produces readable text:
+
+```
+caesar_d3cr9pt3d_f0212758
+```
+
+ 5) Decode the Prefix
+
+Applying the same shift of 19 to the prefix `wpjvJAM` yields:
+
+```
+picoCTF
+```
+
+Combining both parts, we get:
+
+```
+picoCTF{caesar_d3cr9pt3d_f0212758}
+```
+
+Analysis
+
+Why Base64?
+
+CTF challenges often use multiple encoding layers to mislead solvers. Base64 is easy to identify due to its limited character set and padding (`=` signs). Always check for these signs when starting a challenge.
+
+ Why Caesar Cipher?
+
+Once text is decoded and still looks scrambled but alphabetic, a simple substitution cipher like Caesar is a logical next step. It’s one of the oldest and easiest classical ciphers to break — only 26 possible shifts exist.
+
+About `f0212758`
+
+The numeric portion `f0212758` is likely an identifier or random sequence appended for uniqueness. Decoding it via Base64 yields unreadable binary, meaning it is not another encoded message.
+
+
+Key Takeaways
+
+| Concept          | Summary                                                                                   |
+| -----------------| ----------------------------------------------------------------------------------------- |
+| Base64 Encoding | Recognizable by `=` padding and limited character set. Often appears in CTFs.             |
+| Caesar Cipher    | A simple letter-shift cipher with 26 possible keys. Easily brute-forced.                  |
+| Shift Detection  | If you can guess one plaintext letter, you can compute the shift mathematically.          |
+| Layered Encoding | Challenges often nest multiple encodings; decode until text looks structured or readable. |
+
+
+ Conclusion
+
+This challenge demonstrated a common CTF pattern: Base64 → Base64 → Caesar Cipher. Through systematic decoding, we successfully retrieved the final flag:
+
+Flag: 'picoCTF{caesar_d3cr9pt3d_f0212758}'
