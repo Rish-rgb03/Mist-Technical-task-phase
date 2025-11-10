@@ -1,0 +1,61 @@
+VaultDoor6 — picoCTF writeup
+Difficulty: Easy — Introductory reverse engineering / XOR cipher
+Challenge: A small Java program (VaultDoor6) asks for a password of the form picoCTF{...}. The program strips the picoCTF{ prefix and trailing } and then calls a checkPassword function which compares the provided inner string against a byte[] myBytes using a tiny arithmetic/XOR test.
+
+What I saw at a glance
+The important part of the Java program is the checkPassword method. It:
+- Verifies the inner string length is exactly 32 bytes.
+- Converts the input to bytes: byte[] passBytes = password.getBytes();
+- Has a fixed byte[] myBytes array hard-coded in the source.
+- Loops over each index i and tests:
+if (((passBytes[i] ^ 0x55) - myBytes[i]) != 0) {
+    return false;
+}
+
+
+That one line is the whole check — so reversing the check is the entire problem.
+
+Understanding the check
+Let’s rewrite the test more clearly:
+(passBytes[i] ^ 0x55) == myBytes[i]
+
+
+Because XOR (^) is reversible and has the property A ^ B ^ B == A, we can solve for the unknown passBytes[i]:
+passBytes[i] == myBytes[i] ^ 0x55
+
+
+So each byte of the correct password is simply the corresponding myBytes value XORed with 0x55.
+This is a textbook simple XOR-based obfuscation.
+
+How I recovered the flag (human-friendly steps)
+- Copy the myBytes array from the Java code into a short script (Python is convenient).
+- For each value b in myBytes, compute b ^ 0x55 and convert the resulting number to an ASCII character.
+- Join the characters to form the 32-character inner string and wrap it with picoCTF{...}.
+I like to do this in one quick Python line that’s easy to paste into a terminal. For example:
+myBytes = [0x3b,0x65,0x21,0x0a,0x38,0x00,0x36,0x1d,
+           0x0a,0x3d,0x61,0x27,0x11,0x66,0x27,0x0a,
+           0x21,0x1d,0x61,0x3b,0x0a,0x2d,0x65,0x27,
+           0x0a,0x66,0x36,0x30,0x67,0x6c,0x64,0x6c]
+flag_inner = ''.join(chr(b ^ 0x55) for b in myBytes)
+print('picoCTF{' + flag_inner + '}')
+
+
+Running that prints the flag.
+
+Result / Flag
+picoCTF{n0t_mUcH_h4rD3r_tH4n_x0r_3ce2919}
+
+
+(That is the exact string produced by XORing each myBytes byte with 0x55.)
+
+Why this is safe / what to watch out for
+- The check uses a reversible, constant-key XOR (0x55), so the myBytes array contains everything needed to reconstruct the password.
+- If the program had used a secret derived at runtime (for example from an external file or from a system call), recovery would be harder; but here the key and the ciphertext are both in the binary/source.
+- Always check for off-by-one or encoding issues. This program uses getBytes() (platform default charset) and treats everything as raw bytes — typical ASCII flag characters are unaffected.
+
+Small extras / suggestions
+- If you only had a compiled .class file and not the source, you could still extract the myBytes array by decompiling or using strings/xxd/javap tools. The logic is simple enough to spot in bytecode.
+- For practice, try re-implementing the Java check in your own code and feed it the recovered flag to confirm Access granted.
+
+Final notes
+This challenge is a good reminder that sometimes CTF problems use very simple cryptography or obfuscation. The trick is recognizing the pattern: XOR with a constant is one of the most common beginner-level obfuscations. Once you spot the operation and the constant, reversing it is straightforward.
