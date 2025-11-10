@@ -1,0 +1,49 @@
+Challenge: Hidden PNG in flag.txt  Description
+In this challenge, we were given a suspicious file named flag.txt. At first glance, it looked like a normal text file, but when opened in a text editor, it contained random unreadable characters and symbols such as ‰PNG, IHDR, and IEND.
+These keywords immediately stood out — ‰PNG and IEND are the header and footer markers of a PNG image file, meaning that an image was likely hidden inside this text file.
+ 
+
+
+Analysis
+I began by examining the contents more closely:
+The presence of ‰PNG at the start and IEND near the end confirmed a PNG structure.
+The file seemed to contain either:
+Raw PNG binary data, or
+A Base64-encoded version of the image.
+Either way, the goal was to extract everything between the PNG header and footer and save it as a .png file.
+
+
+
+Steps Taken
+Inspected the file manually to confirm PNG signatures (‰PNG and IEND).
+Wrote a Python script that:
+Looks for the PNG header and footer inside the file.
+If Base64 data is found, it decodes it first.
+Extracts the valid PNG byte data.
+Saves the result as output.png.
+Ran the script using Python 3 to generate the image file.
+Opened the extracted image, which contained the challenge flag.
+
+
+
+Tools Used
+Python 3
+Built-in modules: base64, os, re, sys
+Text editor / hex viewer (to inspect file content)
+
+
+
+Result
+After running the extraction script, a valid PNG file was recovered and saved as:
+C:\Users\Rishant\Downloads\output.png
+Opening the image revealed the hidden flag:
+picoCTF{hidden_png_flag}
+
+
+
+Takeaways
+Always check for file signatures (like ‰PNG, JFIF, PK, etc.) inside unknown files.
+Data might be encoded in Base64 or embedded in raw binary form.
+Python’s standard library is powerful enough for quick forensic extraction tasks.
+Even files with .txt extensions can secretly contain binary data or images.
+ Challenge solved: Hidden PNG successfully extracted and the flag was recovered
